@@ -1,35 +1,73 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import "./App.css";
+import { useState, useEffect } from "react";
 
-function App() {
-  const [count, setCount] = useState(0)
+import Description from "./components/Description/Description";
+import Options from "./components/Options/Options";
+import Feedback from "./components/Feedback/Feedback";
+import Notification from "./components/Notification/Notification";
+
+export default function App() {
+  const initialState = { good: 0, neutral: 0, bad: 0 };
+
+  const [reviewState, setReviewState] = useState(() => {
+    const savedState = localStorage.getItem("reviewState");
+    return savedState ? JSON.parse(savedState) : initialState;
+  });
+
+  const [clicks, setClicks] = useState(0);
+
+  function updateFeedback(feedbackType) {
+    setReviewState((prevState) => ({
+      ...prevState,
+      [feedbackType]: prevState[feedbackType] + 1,
+    }));
+  }
+
+  function resetFeedback() {
+    setReviewState(initialState);
+  }
+
+  const totalFeedback = Object.values(reviewState).reduce(
+    (sum, value) => sum + value,
+    0
+  );
+
+  const goodFeedback =
+    totalFeedback > 0
+      ? Math.round((reviewState.good / totalFeedback) * 100)
+      : 0;
+
+  useEffect(() => {
+    localStorage.setItem("reviewState", JSON.stringify(reviewState));
+  }, [reviewState]);
+
+  useEffect(() => {
+    localStorage.setItem("goodFeedback", goodFeedback);
+    localStorage.setItem("totalFeedback", totalFeedback);
+  }, [totalFeedback, goodFeedback]);
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+      <Description
+        title="Sip Happens Café"
+        description="Please leave your feedback about our service by selecting one of the options below."
+      />
+      <Options
+        options={Object.keys(reviewState)}
+        handleClick={updateFeedback}
+        handleReset={resetFeedback}
+        totalFeedback={totalFeedback}
+      />
 
-export default App
+      {totalFeedback ? (
+        <Feedback
+          options={reviewState}
+          goodFeedback={goodFeedback}
+          totalFeedback={totalFeedback}
+        />
+      ) : (
+        <Notification />
+      )}
+    </>
+  );
+}
