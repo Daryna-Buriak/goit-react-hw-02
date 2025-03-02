@@ -14,8 +14,6 @@ export default function App() {
     return savedState ? JSON.parse(savedState) : initialState;
   });
 
-  const [clicks, setClicks] = useState(0);
-
   function updateFeedback(feedbackType) {
     setReviewState((prevState) => ({
       ...prevState,
@@ -41,11 +39,6 @@ export default function App() {
     localStorage.setItem("reviewState", JSON.stringify(reviewState));
   }, [reviewState]);
 
-  useEffect(() => {
-    localStorage.setItem("goodFeedback", goodFeedback);
-    localStorage.setItem("totalFeedback", totalFeedback);
-  }, [totalFeedback, goodFeedback]);
-
   return (
     <>
       <Description
@@ -59,7 +52,7 @@ export default function App() {
         totalFeedback={totalFeedback}
       />
 
-      {totalFeedback ? (
+      {totalFeedback > 0 ? (
         <Feedback
           options={reviewState}
           goodFeedback={goodFeedback}
